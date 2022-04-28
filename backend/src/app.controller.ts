@@ -11,7 +11,6 @@ export class AppController {
     return roomname
   }
 
-  
   @Put('changename/:room/:memberid/:name')
   async changeName(@Param('room') room:string , @Param('memberid') memberid:string , @Param('name') name:string): Promise<string> {
     const changing_name = await this.appService.changeName(room,memberid,name);
@@ -23,7 +22,7 @@ export class AppController {
     const adding = await this.appService.addMember(room,name)
     return adding    
   }
-  
+
   @Delete('member/:room/:memberid')
   async removeMember(@Param('room') room:string, @Param('memberid') memberid:string): Promise<string> {
     const deleting = this.appService.removeMember(room,memberid)
@@ -71,4 +70,11 @@ export class AppController {
     const deleting = await this.appService.changeIssueName(room,issue,name)
     return 
   }
+
+  @Put('newvoting/:room')
+  async startNewVoting(@Param('room') room:string) {
+    const starting = await this.appService.startNewVoting(room)
+    return 
+  }
+
 }

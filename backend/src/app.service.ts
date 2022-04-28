@@ -56,7 +56,7 @@ export class AppService {
 
   async votingScore(room: string, memberid: string, score: number): Promise<string> {
     const docs = firestore.collection("poker").doc(room).collection("members").doc(memberid).update({
-      'score': score,
+      'score': Number(score),
       'status': "active"
     })
     console.log(docs)
@@ -135,6 +135,17 @@ export class AppService {
     })
     console.log(ret_data)
     return [ret_data]
+  }
+
+  async startNewVoting(room) {
+    firestore.collection("poker").doc(room).collection('members').get()
+    .then(snapShot => {
+      snapShot.forEach(docs => {
+        firestore.collection("poker").doc(room).collection('members').doc(docs.id).update({
+          'status': "inactive"
+        })
+      })
+    })
   }
 
 }
