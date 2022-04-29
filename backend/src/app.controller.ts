@@ -1,9 +1,16 @@
 import { Controller, Delete, Get, Param, Body , Post, Put } from '@nestjs/common';
+import { pseudoRandomBytes } from 'crypto';
 import { AppService } from './app.service';
+import { VoteData } from './dto/voteData.dto';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
+
+  @Get('test')
+  test() {
+    return 'hello'
+  }
 
   @Post('createroom/:name')
   async createRoom(@Param("name") name:string): Promise<string> {
@@ -35,9 +42,9 @@ export class AppController {
     return voting
   }
 
-  @Get('average/:room/:issue')
-  async getAverageScore(@Param('room') room:string , @Param("issue") issue:string): Promise<any> {
-    const average = await this.appService.getAverageScore(room,issue)
+  @Post('average/:room/:issue')
+  async getAverageScore(@Param('room') room:string , @Param("issue") issue:string , @Body() voteData:VoteData): Promise<any> {
+    const average = await this.appService.getAverageScore(room,issue,voteData)
     return average[0] 
   }
 
@@ -53,9 +60,9 @@ export class AppController {
     return getting
   }
 
-  @Post('issue/:room')
-  async addIssue(@Param('room') room:string): Promise<any> {
-    const adding  = await this.appService.addIssue(room)
+  @Post('issue/:room/:id')
+  async createIssue(@Param('room') room:string , @Param('id') id:string): Promise<any> {
+    const adding  = await this.appService.createIssue(room,id)
     return adding
   }
 
@@ -74,7 +81,20 @@ export class AppController {
   @Put('newvoting/:room')
   async startNewVoting(@Param('room') room:string) {
     const starting = await this.appService.startNewVoting(room)
-    return 
+    return starting
+  }
+
+  @Put('setstatus/:room/:status')
+  async setStatus(@Param('room') room:string , @Param('status') status:number) {
+    const setting = await this.appService.setStatus(room,status)
+    return setting
+  }
+
+  @Put('issue/:room')
+  async rearrangeIssue(@Param() room:string,@Body() data:any) {
+    console.log(data)
+    const rearranging = await this.appService.rearrangeIssue(room,data)
+    return rearranging
   }
 
 }
