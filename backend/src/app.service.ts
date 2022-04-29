@@ -11,21 +11,22 @@ export class AppService {
 
   async createRoom(name: string): Promise<string> {
     var roomname = 'roomname'
-
+    const DateInSec = new Date();
+    const unixtime = DateInSec.valueOf()
+    const DateInFormat = new Date(unixtime)
+    
     const creator = {
       "name": name,
       "score": 0,
       "status": 'inactive',
     }
-    const DateInSec = new Date();
-    const unixtime = DateInSec.valueOf()
-    const DateInFormat = new Date(unixtime)
     const issue = {
       "name": "Untitled",
       "score": '-',
       "history" : [{"CreateDate": [DateInFormat] , "average_score": '-'}]
     }
-    const room = await firestore.collection("poker").add({
+
+    await firestore.collection("poker").add({
       "createDate": DateInFormat
     })
       .then(docs => {
@@ -38,8 +39,12 @@ export class AppService {
 
   async addMember(room: string, name: string): Promise<string> {
     const newMember: member = { 'name': name, 'score': 0, 'status': 'inactive' };
+    var memberid = "xxx"
     const data = await firestore.collection("poker").doc(room).collection("members").add(newMember)
-    return "Add member " + name + " to " + room
+    .then(docs => {
+      memberid = docs.id
+    })
+    return "Add member " + name + " to " + room + " with id " + memberid
   }
 
   async removeMember(room: string, memberid: string): Promise<string> {
@@ -59,7 +64,7 @@ export class AppService {
       'score': Number(score),
       'status': "active"
     })
-    console.log(docs)
+    //console.log(docs)
     return room + " member " + memberid + " vote " + score + "point "
   }
   async getAllIssue(room:string): Promise<{}> {
@@ -101,6 +106,7 @@ export class AppService {
     firestore.collection("poker").doc(room).collection("issues").doc(issue).update({
       "name" : name
     })
+    return "Change Issue name of " + issue + ' to ' + name 
   }
 
   async getAverageScore(room: string, issue: string): Promise<any> {
@@ -110,7 +116,7 @@ export class AppService {
     const snap = await firestore.collection("poker").doc(room).collection("members").get()
     snap.forEach(docs => {
       if (docs.data().status == 'active') {
-        if (docs.data().score in stat) {
+        if (docs.data().score in stat && docs.data().score >= 0) {
           stat[docs.data().score].push(docs.data().name);
         }
         else {

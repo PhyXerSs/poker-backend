@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param, ParseEnumPipe, Post, Put } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Body , Post, Put } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
@@ -67,8 +67,8 @@ export class AppController {
 
   @Put('issue/:room/:issue/:name')
   async changeIssueName(@Param('room') room:string , @Param("issue") issue:string , @Param("name") name:string) : Promise<any> {
-    const deleting = await this.appService.changeIssueName(room,issue,name)
-    return 
+    const changing = await this.appService.changeIssueName(room,issue,name)
+    return changing
   }
 
   @Put('newvoting/:room')
