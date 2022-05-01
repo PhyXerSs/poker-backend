@@ -4,6 +4,7 @@ import 'firebase/compat/firestore';
 import { member } from './dto/member.dto';
 import { VoteData } from './dto/voteData.dto';
 import { log } from 'console';
+import { DataRearrange } from './dto/dataRerrange.dto';
 
 @Injectable()
 export class AppService {
@@ -201,10 +202,19 @@ export class AppService {
       })
   }
 
-  async rearrangeIssue(room:string, data:any) {
-    console.log("->" , data.issue)
-    await firestore.collection('poker').doc(room).update({
-      'issues' : '1'
+  async rearrangeIssue(room:string, data:DataRearrange) {
+    let id_data = []
+    Object.keys(data).forEach(key => {
+      id_data.push(key)
+      firestore.collection('poker').doc(room['room']).collection('issues').doc(key).update({
+        "id" : data[key].id,
+        'score' : data[key].score,
+        "name" : data[key].title,
+        "selected" : data[key].selected,
+      })
+    })
+    firestore.collection('poker').doc(room['room']).update({
+      "issues" : id_data
     })
   }
 

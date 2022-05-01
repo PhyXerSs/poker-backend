@@ -1,6 +1,7 @@
 import { Controller, Delete, Get, Param, Body , Post, Put } from '@nestjs/common';
 import { pseudoRandomBytes } from 'crypto';
 import { AppService } from './app.service';
+import { DataRearrange } from './dto/dataRerrange.dto';
 import { VoteData } from './dto/voteData.dto';
 
 @Controller()
@@ -91,9 +92,8 @@ export class AppController {
   }
 
   @Put('issue/:room')
-  async rearrangeIssue(@Param() room:string,@Body() data:any) {
-    console.log(data)
-    const rearranging = await this.appService.rearrangeIssue(room,data)
+  async rearrangeIssue(@Param() room:string,@Body() dataRearrange:DataRearrange) {
+    const rearranging = await this.appService.rearrangeIssue(room,dataRearrange)
     return rearranging
   }
 
