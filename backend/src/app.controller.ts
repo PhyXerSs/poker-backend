@@ -93,6 +93,7 @@ export class AppController {
 
   @Put('issue/:room')
   async rearrangeIssue(@Param() room:string,@Body() dataRearrange:DataRearrange) {
+    console.log(dataRearrange)
     const rearranging = await this.appService.rearrangeIssue(room,dataRearrange)
     return rearranging
   }
