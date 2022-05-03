@@ -11,7 +11,9 @@ export class AppService {
   getHello(): string {
     return 'Hello World!';
   }
-
+  async deleteRoom(room:string) {
+    firestore.collection('poker').doc(room).delete()
+  }
   async createRoom(name: string): Promise<string> {
     var roomname = 'roomname'
     const DateInSec = new Date();
@@ -60,7 +62,16 @@ export class AppService {
   }
 
   async removeMember(room: string, memberid: string): Promise<string> {
-    const docs = firestore.collection("poker").doc(room).collection("members").doc(memberid).delete()
+    console.log(room,memberid)
+    const docs = firestore.collection("poker").doc(room).collection("members").get()
+    .then(snap => {
+      if (snap.docs.length == 1) {
+        this.nestedDelete(room)
+      }
+      else {
+        firestore.collection("poker").doc(room).collection("members").doc(memberid).delete()
+      }
+    })
     return "Remove memberid " + memberid + " from room " + room
   }
 
@@ -218,7 +229,23 @@ export class AppService {
     })
   }
 
+  async nestedDelete(room:string) {
+    firestore.collection('poker').doc(room).collection('issues').get()
+    .then(snap => {
+      snap.forEach(docs => {
+        firestore.collection('poker').doc(room).collection('issues').doc(docs.id).delete()
+      })
+    })
 
+    firestore.collection('poker').doc(room).collection('members').get()
+    .then(snap => {
+      snap.forEach(docs => {
+        firestore.collection('poker').doc(room).collection('members').doc(docs.id).delete()
+      })
+    })
+    
+    firestore.collection('poker').doc(room).delete()
+  }
 
 }
 

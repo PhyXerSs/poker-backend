@@ -8,11 +8,6 @@ import { VoteData } from './dto/voteData.dto';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get('test')
-  test() {
-    return 'hello'
-  }
-
   @Post('createroom/:name')
   async createRoom(@Param("name") name:string): Promise<string> {
     const roomname = await this.appService.createRoom(name);
