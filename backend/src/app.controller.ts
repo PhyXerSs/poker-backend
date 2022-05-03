@@ -32,6 +32,12 @@ export class AppController {
     return deleting
   }
 
+  @Delete(':room')
+  async removeRoom(@Param('room') room:string ): Promise<string> {
+    const deleting = this.appService.nestedDelete(room)
+    return 'ok';
+  }
+
   @Put('voting/:room/:memberid/:score')
   async votingScore(@Param('room') room:string , @Param('memberid') memberid:string , @Param('score') score:number): Promise<string> {
     const voting = await this.appService.votingScore(room,memberid,score)
