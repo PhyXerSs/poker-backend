@@ -80,9 +80,9 @@ export class AppController {
     return starting
   }
 
-  @Put('setstatus/:room/:status')
-  async setStatus(@Param('room') room:string , @Param('status') status:number) {
-    const setting = await this.appService.setStatus(room,status)
+  @Put('setstatus/:room/:issue/:status')
+  async setStatus(@Param('room') room:string , @Param('issue') issue:string , @Param('status') status:number) {
+    const setting = await this.appService.setStatus(room,issue,status)
     return setting
   }
 

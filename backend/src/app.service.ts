@@ -164,7 +164,7 @@ export class AppService {
       })
   }
 
-  async setStatus(room, status) {
+  async setStatus(room, issue , status) {
     await firestore.collection("poker").doc(room).collection('members').get()
       .then(snap => {
         snap.forEach(docs => {
@@ -197,17 +197,17 @@ export class AppService {
             })
 
           const ret_data = { 'members': stat, 'average_score': sum / count }
-          // firestore.collection("poker").doc(room).collection("issues").doc(issue).get()
-          // .then(docs => {
-          //   let history = docs.data().history as Array<{}>
-          //   console.log(history)
-          //   history.push(ret_data)
-          //   firestore.collection("poker").doc(room).collection("issues").doc(issue).update({
-          //     "score" : ret_data['average_score'],
-          //     "history" : history
-          //   })
-          //   console.log(docs.data())
-          // })
+          firestore.collection("poker").doc(room).collection("issues").doc(issue).get()
+          .then(docs => {
+            let history = docs.data().history as Array<{}>
+            console.log(history)
+            history.push(ret_data)
+            firestore.collection("poker").doc(room).collection("issues").doc(issue).update({
+              "score" : ret_data['average_score'],
+              "history" : history
+            })
+            console.log(docs.data())
+          })
           console.log(ret_data)
         }
       })
