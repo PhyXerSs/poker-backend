@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import firestore from './utils/firebase';
 import 'firebase/compat/firestore';
-import { member } from './dto/member.dto';
 import { VoteData } from './dto/voteData.dto';
-import { log } from 'console';
+import { nanoid } from 'nanoid'
 import { DataRearrange } from './dto/dataRerrange.dto';
 
 @Injectable()
@@ -15,15 +14,16 @@ export class AppService {
     firestore.collection('poker').doc(room).delete()
   }
   async createRoom(name: string): Promise<string> {
-    var roomname = 'roomname'
+    var roomid = nanoid(6)
     const DateInSec = new Date();
     const unixtime = DateInSec.valueOf()
     const DateInFormat = new Date(unixtime)
 
     const creator = {
+      "id" : '-',
       "name": name,
       "score": '-',
-      "joinTime": DateInFormat
+      "isHost": true
     }
     const issue = {
       "name": "Untitled",
@@ -32,118 +32,27 @@ export class AppService {
       "id" : '0',
       "selected" : Boolean(false)
     }
-
-    await firestore.collection("poker").add({
+    
+    await firestore.collection("poker").doc(roomid).set({
       "createDate": DateInFormat,
       "status" : Number(1) 
     })
-      .then(docs => {
-        roomname = docs.id
-        firestore.collection("poker").doc(docs.id).collection("members").add(creator)
-        firestore.collection("poker").doc(docs.id).collection("issues").add(issue)
+      .then(async docs => {
+        let creatorid = await firestore.collection("poker").doc(roomid).collection("members").add(creator)
+        await firestore.collection("poker").doc(roomid).collection("members").get()
         .then(docs => {
-            firestore.collection("poker").doc(roomname).update({'issues':[docs.id]})
+          firestore.collection("poker").doc(roomid).collection("members").doc(creatorid.id).update({
+          'id' : creatorid.id
+          })
+        })
+        firestore.collection("poker").doc(roomid).collection("issues").add(issue)
+        .then(docs => {
+            firestore.collection("poker").doc(roomid).update({'issues':[docs.id]})
         })
       })
-    return roomname
+    return roomid
   }
 
-  async addMember(room: string, name: string): Promise<string> {
-    const DateInSec = new Date();
-    const unixtime = DateInSec.valueOf()
-    const DateInFormat = new Date(unixtime)
-    const newMember: member = { 'name': name, 'score': '-', 'joinTime': DateInFormat };
-    var memberid = "xxx"
-    const data = await firestore.collection("poker").doc(room).collection("members").add(newMember)
-      .then(docs => {
-        memberid = docs.id
-      })
-    return memberid
-  }
-
-  async removeMember(room: string, memberid: string): Promise<string> {
-    console.log(room,memberid)
-    const docs = firestore.collection("poker").doc(room).collection("members").get()
-    .then(snap => {
-      if (snap.docs.length == 1) {
-        this.nestedDelete(room)
-      }
-      else {
-        firestore.collection("poker").doc(room).collection("members").doc(memberid).delete()
-      }
-    })
-    return "Remove memberid " + memberid + " from room " + room
-  }
-
-  async changeName(room: string, memberid: string, name: string): Promise<string> {
-    const docs = firestore.collection("poker").doc(room).collection("members").doc(memberid).update({
-      'name': name
-    })
-    return "Change name of memberid " + memberid + ' to ' + name
-  }
-
-  async votingScore(room: string, memberid: string, score: number): Promise<string> {
-    const docs = firestore.collection("poker").doc(room).collection("members").doc(memberid).update({
-      'score': String(score),
-    })
-    //console.log(docs)
-    return room + " member " + memberid + " vote " + score + "point "
-  }
-  async getAllIssue(room: string): Promise<{}> {
-    let data = {}
-    const snap = await firestore.collection("poker").doc(room).collection("issues").get()
-    snap.forEach(docs => {
-      data[docs.id] = { 'name': docs.data().name, 'average_score': docs.data().score }
-    })
-    return data
-  }
-
-  async getSpecificIssue(room: string, issue: string): Promise<{}> {
-    let data = {}
-    await firestore.collection("poker").doc(room).collection("issues").doc(issue).get()
-      .then(docs => {
-        console.log(docs.id, docs.data())
-        data[docs.id] = docs.data()
-      })
-    return data
-  }
-
-  async createIssue(room: string,id:string ): Promise<string> {
-    let issueid:string
-    const DateInSec = new Date();
-    const unixtime = DateInSec.valueOf()
-    const DateInFormat = new Date(unixtime)
-    firestore.collection("poker").doc(room).collection("issues").add({
-      "name": 'Untitled',
-      "score": '-',
-      "selected": Boolean(false),
-      'id': id,
-      "history": [{ "CreateDate": [DateInFormat], "average_score": '-' }]
-    }).then(async docs => {
-      issueid = docs.id
-      await firestore.collection("poker").doc(room).get()
-      .then(async adddocs => {
-        let newIssue = adddocs.data().issues as Array<string>
-        newIssue.push(issueid)
-        console.log(newIssue)
-        await firestore.collection("poker").doc(room).update({
-          'issues' : newIssue  
-        })
-      })
-    })
-    return issueid
-  }
-
-  async deleteIssue(room: string, issue: string): Promise<any> {
-    return firestore.collection("poker").doc(room).collection("issues").doc(issue).delete()
-  }
-
-  async changeIssueName(room: string, issue: string, name: string): Promise<any> {
-    firestore.collection("poker").doc(room).collection("issues").doc(issue).update({
-      "name": name
-    })
-    return "Change Issue name of " + issue + ' to ' + name
-  }
 
   async getAverageScore(room: string, issue: string, voteData: VoteData): Promise<any> {
     const data = await firestore.collection("poker").doc(room).collection("issues").doc(issue).get();

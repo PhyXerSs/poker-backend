@@ -1,5 +1,6 @@
 export interface member {
+    "id" : string
     "name" : string;
     "score" : string;
-    "joinTime" : Date;
+    "isHost" : boolean
 }
