@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import firestore from './utils/firebase';
 import 'firebase/compat/firestore';
+import { DataRearrange } from './dto/dataRerrange.dto';
 
 @Injectable()
 export class IssueService {
@@ -59,4 +60,21 @@ export class IssueService {
         })
         return "Change Issue name of " + issue + ' to ' + name
       }
+
+      
+  async rearrangeIssue(room:string, data:DataRearrange) {
+    let id_data = []
+    Object.keys(data).forEach(key => {
+      id_data.push(key)
+      firestore.collection('poker').doc(room['room']).collection('issues').doc(key).update({
+        "id" : data[key].id,
+        'score' : data[key].score,
+        "name" : data[key].title,
+        "selected" : data[key].selected,
+      })
+    })
+    firestore.collection('poker').doc(room['room']).update({
+      "issues" : id_data
+    })
+  }
 }

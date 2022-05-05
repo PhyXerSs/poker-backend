@@ -6,7 +6,7 @@ export class MemberController {
     constructor(private readonly memberService: MemberService) {}
 
     @Post('member/:room/:name')
-    async addMember(@Param('room') room:string , @Param('name') name:string): Promise<string> {
+    async addMember(@Param('room') room:string , @Param('name') name:string): Promise<string[]> {
       const adding = await this.memberService.addMember(room,name)
       return adding    
     }

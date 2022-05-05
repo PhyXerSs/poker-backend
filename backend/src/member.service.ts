@@ -6,14 +6,23 @@ import { member } from './dto/member.dto';
 @Injectable()
 export class MemberService {
   
-    async addMember(room: string, name: string): Promise<string> {
+    async addMember(room: string, name: string): Promise<string[]> {
         const newMember: member = { 'id': '-' , 'name': name, 'score': '-' , 'isHost' : false};
         var memberid = "-"
-        const data = await firestore.collection("poker").doc(room).collection("members").add(newMember)
-          .then(docs => {
-            memberid = docs.id
-          })
-        return memberid
+        try{
+          const data = await firestore.collection("poker").doc(room).get()
+              if(data.exists){
+                  const user = await firestore.collection("poker").doc(room).collection("members").add(newMember);
+                  await firestore.collection("poker").doc(room).collection("members").doc(user.id).update({
+                      "id": user.id
+                  })
+                  return [user.id,data.id,data.data()?.roomName] as string[]
+              }else{
+                  return ['Invalid pin']
+              }
+          }catch(err){
+              return ['Invalid pin']
+          }
       }
     
       async removeMember(room: string, memberid: string): Promise<string> {

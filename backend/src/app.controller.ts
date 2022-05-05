@@ -8,7 +8,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Post('createroom/:name')
-  async createRoom(@Param("name") name:string): Promise<string> {
+  async createRoom(@Param("name") name:string): Promise<string[]> {
     const roomname = await this.appService.createRoom(name);
     return roomname
   }
@@ -35,13 +35,6 @@ export class AppController {
   async setStatus(@Param('room') room:string , @Param('issue') issue:string , @Param('status') status:number) {
     const setting = await this.appService.setStatus(room,issue,status)
     return setting
-  }
-
-  @Put('issue/:room')
-  async rearrangeIssue(@Param() room:string,@Body() dataRearrange:DataRearrange) {
-    console.log(dataRearrange)
-    const rearranging = await this.appService.rearrangeIssue(room,dataRearrange)
-    return rearranging
   }
 
 }

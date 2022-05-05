@@ -13,12 +13,13 @@ export class AppService {
   async deleteRoom(room:string) {
     firestore.collection('poker').doc(room).delete()
   }
-  async createRoom(name: string): Promise<string> {
+  async createRoom(name: string): Promise<string[]> {
     var roomid = nanoid(6)
+    var creatorid : any
     const DateInSec = new Date();
     const unixtime = DateInSec.valueOf()
     const DateInFormat = new Date(unixtime)
-
+    var retdata = [roomid]
     const creator = {
       "id" : '-',
       "name": name,
@@ -38,7 +39,8 @@ export class AppService {
       "status" : Number(1) 
     })
       .then(async docs => {
-        let creatorid = await firestore.collection("poker").doc(roomid).collection("members").add(creator)
+        creatorid = await firestore.collection("poker").doc(roomid).collection("members").add(creator)
+        retdata.push(creatorid.id)
         await firestore.collection("poker").doc(roomid).collection("members").get()
         .then(docs => {
           firestore.collection("poker").doc(roomid).collection("members").doc(creatorid.id).update({
@@ -50,7 +52,7 @@ export class AppService {
             firestore.collection("poker").doc(roomid).update({'issues':[docs.id]})
         })
       })
-    return roomid
+    return retdata
   }
 
 
@@ -120,22 +122,6 @@ export class AppService {
           console.log(ret_data)
         }
       })
-  }
-
-  async rearrangeIssue(room:string, data:DataRearrange) {
-    let id_data = []
-    Object.keys(data).forEach(key => {
-      id_data.push(key)
-      firestore.collection('poker').doc(room['room']).collection('issues').doc(key).update({
-        "id" : data[key].id,
-        'score' : data[key].score,
-        "name" : data[key].title,
-        "selected" : data[key].selected,
-      })
-    })
-    firestore.collection('poker').doc(room['room']).update({
-      "issues" : id_data
-    })
   }
 
   async nestedDelete(room:string) {

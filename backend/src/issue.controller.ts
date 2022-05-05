@@ -1,4 +1,5 @@
 import { Controller, Delete, Get, Param, Body , Post, Put } from '@nestjs/common';
+import { DataRearrange } from './dto/dataRerrange.dto';
 import { IssueService } from './issue.service';
 
 @Controller()
@@ -33,5 +34,12 @@ export class IssueController {
     async changeIssueName(@Param('room') room:string , @Param("issue") issue:string , @Param("name") name:string) : Promise<any> {
       const changing = await this.issueService.changeIssueName(room,issue,name)
       return changing
+    }
+
+    @Put('issue/:room')
+    async rearrangeIssue(@Param() room:string,@Body() dataRearrange:DataRearrange) {
+      console.log(dataRearrange)
+      const rearranging = await this.issueService.rearrangeIssue(room,dataRearrange)
+      return rearranging
     }
 }
