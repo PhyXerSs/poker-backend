@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import firestore from './utils/firebase';
 import 'firebase/compat/firestore';
 import { member } from './dto/member.dto';
-
+import database from './utils/database';
 @Injectable()
 export class MemberService {
   
@@ -13,6 +13,7 @@ export class MemberService {
           const data = await firestore.collection("poker").doc(room).get()
               if(data.exists){
                   const user = await firestore.collection("poker").doc(room).collection("members").add(newMember);
+                  database.ref('status/'+ user.id).set('online')
                   await firestore.collection("poker").doc(room).collection("members").doc(user.id).update({
                       "id": user.id
                   })

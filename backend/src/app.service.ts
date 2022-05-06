@@ -3,7 +3,7 @@ import firestore from './utils/firebase';
 import 'firebase/compat/firestore';
 import { VoteData } from './dto/voteData.dto';
 import { nanoid } from 'nanoid'
-import { DataRearrange } from './dto/dataRerrange.dto';
+import database from './utils/database';
 
 @Injectable()
 export class AppService {
@@ -40,6 +40,7 @@ export class AppService {
     })
       .then(async docs => {
         creatorid = await firestore.collection("poker").doc(roomid).collection("members").add(creator)
+        database.ref('status/' + creatorid.id).set('online')
         retdata.push(creatorid.id)
         await firestore.collection("poker").doc(roomid).collection("members").get()
         .then(docs => {
