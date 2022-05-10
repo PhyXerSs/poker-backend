@@ -79,6 +79,8 @@ export class MemberService {
   }
 }
 
+//run
+
 async function nestedDelete(room: string) {
   firestore.collection('poker').doc(room).collection('issues').get()
     .then(snap => {
@@ -100,12 +102,29 @@ async function nestedDelete(room: string) {
 }
 
 async function removeMember(roomid: string, memberid: string) {
-  await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).get()
-  .then(docs => {
-    if(docs.data().isHost){
-    nestedDelete(roomid)
-    }
-  })
+  await firestore.collection("poker").doc(roomid).collection("members").get()
+    .then(async (doc) => {
+      if (doc.docs.length == 1) {
+        nestedDelete(roomid)
+      }
+      else {
+        await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).get()
+          .then(docs => {
+            if (docs.data().isHost) {
+              firestore.collection("poker").doc(roomid).collection("members").where("id","!=",docs.id).limit(1).get()
+                .then(snap => {
+                  snap.forEach(mem => {
+                    console.log(mem.data())
+                    firestore.collection("poker").doc(roomid).collection("members").doc(mem.id).update({
+                      "isHost": true
+                    })
+                  })
+                })
+            }
+
+          })
+      }
+    })
   await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).delete()
   await firestore.collection("user").doc(memberid).delete()
 }
@@ -120,7 +139,7 @@ database.ref('status').on('value', (snap) => {
         if (docs.exists) {
           console.log(memberid)
           const roomid = docs.data().room
-          removeMember(roomid,memberid)
+          removeMember(roomid, memberid)
         }
       })
     }
