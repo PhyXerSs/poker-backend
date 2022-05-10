@@ -123,10 +123,10 @@ async function removeMember(roomid: string, memberid: string) {
             }
 
           })
+          await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).delete()
+          await firestore.collection("user").doc(memberid).delete()
       }
     })
-  await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).delete()
-  await firestore.collection("user").doc(memberid).delete()
 }
 
 database.ref('status').on('value', (snap) => {
