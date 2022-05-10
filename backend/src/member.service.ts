@@ -104,7 +104,7 @@ async function nestedDelete(room: string) {
 async function removeMember(roomid: string, memberid: string) {
   await firestore.collection("poker").doc(roomid).collection("members").get()
     .then(async (doc) => {
-      if (doc.docs.length == 1) {
+      if (doc.docs.length <= 1) {
         nestedDelete(roomid)
       }
       else {
