@@ -7,10 +7,6 @@ import { domainToASCII } from 'url';
 @Injectable()
 export class MemberService {
 
-  async sayHello() {
-    console.log('Hello')
-  }
-
   async addMember(room: string, name: string): Promise<string[]> {
     const newMember: member = { 'id': '-', 'name': name, 'score': '-', 'isHost': false };
     var memberid = "-"
@@ -31,18 +27,25 @@ export class MemberService {
     }
   }
 
-  async removeMember(room: string, memberid: string): Promise<string> {
-    console.log(room, memberid)
-    const docs = firestore.collection("poker").doc(room).collection("members").get()
-      .then(snap => {
-        if (snap.docs.length == 1) {
-          this.nestedDelete(room)
-        }
-        else {
-          firestore.collection("poker").doc(room).collection("members").doc(memberid).delete()
-        }
-      })
-    return "Remove memberid " + memberid + " from room " + room
+  async removeMember(roomid: string, memberid: string): Promise<string> {
+    console.log(roomid, memberid)
+    await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).get()
+    .then(docs => {
+      if (docs.data().isHost) {
+        firestore.collection("poker").doc(roomid).collection("members").where("id", "!=", docs.id).limit(1).get()
+          .then(snap => {
+            snap.forEach(mem => {
+              console.log(mem.data())
+              firestore.collection("poker").doc(roomid).collection("members").doc(mem.id).update({
+                "isHost": true
+              })
+            })
+          })
+      }
+    })
+    await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).delete()
+    await firestore.collection("user").doc(memberid).delete()
+    return "Remove memberid " + memberid + " from room " + roomid
   }
 
   async changeName(room: string, memberid: string, name: string): Promise<string> {
@@ -102,31 +105,23 @@ async function nestedDelete(room: string) {
 }
 
 async function removeMember(roomid: string, memberid: string) {
-  await firestore.collection("poker").doc(roomid).collection("members").get()
-    .then(async (doc) => {
-      if (doc.docs.length <= 1) {
-        nestedDelete(roomid)
-      }
-      else {
-        await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).get()
-          .then(docs => {
-            if (docs.data().isHost) {
-              firestore.collection("poker").doc(roomid).collection("members").where("id","!=",docs.id).limit(1).get()
-                .then(snap => {
-                  snap.forEach(mem => {
-                    console.log(mem.data())
-                    firestore.collection("poker").doc(roomid).collection("members").doc(mem.id).update({
-                      "isHost": true
-                    })
-                  })
-                })
-            }
-
+  await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).get()
+    .then(docs => {
+      if (docs.data().isHost) {
+        firestore.collection("poker").doc(roomid).collection("members").where("id", "!=", docs.id).limit(1).get()
+          .then(snap => {
+            snap.forEach(mem => {
+              console.log(mem.data())
+              firestore.collection("poker").doc(roomid).collection("members").doc(mem.id).update({
+                "isHost": true
+              })
+            })
           })
-          await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).delete()
-          await firestore.collection("user").doc(memberid).delete()
       }
+
     })
+  await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).delete()
+  await firestore.collection("user").doc(memberid).delete()
 }
 
 database.ref('status').on('value', (snap) => {

@@ -36,5 +36,5 @@ export class AppController {
     const setting = await this.appService.setStatus(room,issue,status)
     return setting
   }
-
+  
 }

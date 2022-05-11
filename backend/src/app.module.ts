@@ -5,9 +5,11 @@ import { IssueController } from './issue.controller';
 import { IssueService } from './issue.service';
 import { MemberController } from './member.controller';
 import { MemberService } from './member.service';
-
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
-  imports: [],
+  imports: [
+    ScheduleModule.forRoot()
+  ],
   controllers: [AppController , MemberController , IssueController],
   providers: [AppService , MemberService , IssueService],
 })

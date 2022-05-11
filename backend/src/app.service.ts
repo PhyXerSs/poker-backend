@@ -4,12 +4,17 @@ import 'firebase/compat/firestore';
 import { VoteData } from './dto/voteData.dto';
 import { nanoid } from 'nanoid'
 import database from './utils/database';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
-    return 'Hello World!';
+  
+  @Cron('0 0 * * * *')
+  handleCron() {
+    console.log("Run Check Active Room")
+    this.checkActiveRoom();
   }
+
   async deleteRoom(room:string) {
     firestore.collection('poker').doc(room).delete()
   }
@@ -35,7 +40,7 @@ export class AppService {
     }
     
     await firestore.collection("poker").doc(roomid).set({
-      "createDate": DateInFormat,
+      "ActiveDate": DateInFormat,
       "status" : Number(1) 
     })
       .then(async docs => {
@@ -141,6 +146,18 @@ export class AppService {
     })
     
     firestore.collection('poker').doc(room).delete()
+  }
+
+  async checkActiveRoom() {
+    firestore.collection('poker').get()
+    .then(snap => {
+      snap.forEach(room => {
+        const diffTimeInSec = (new Date().valueOf()/1000) - (room.data().ActiveDate.seconds)
+        if(diffTimeInSec >= 86400) {
+          this.nestedDelete(room.id)
+        }
+      })
+    })
   }
 
 }
