@@ -36,5 +36,25 @@ export class AppController {
     const setting = await this.appService.setStatus(room,issue,status)
     return setting
   }
-  
+
+  @Post('startbreakdown/:room')
+  async startBreakdown(@Param('room')  room:string) {
+    const message = await this.appService.startBreakdown(room);
+    return message
+  }
+  @Post('stopbreakdown/:room')
+  async stopBreakdown(@Param('room')  room:string) {
+    const message = await this.appService.stopBreakdown(room);
+    return message
+  }
+  @Post('startVoting/:room')
+  async startVoting(@Param('room')  room:string) {
+    const message = await this.appService.startVoting(room);
+    return message
+  }
+  @Post('stopVoting/:room')
+  async stopVoting(@Param('room')  room:string) {
+    const message = await this.appService.stopVoting(room);
+    return message
+  }
 }

@@ -142,10 +142,12 @@ export class AppService {
     .then(snap => {
       snap.forEach(docs => {
         firestore.collection('poker').doc(room).collection('members').doc(docs.id).delete()
+        firestore.collection("user").doc(docs.id).delete()
       })
     })
     
     firestore.collection('poker').doc(room).delete()
+    database.ref(`countdown/${room}`).remove()
   }
 
   async checkActiveRoom() {
@@ -160,5 +162,52 @@ export class AppService {
     })
   }
 
+  async startBreakdown(room:string) {
+    console.log("Start Breakdown")
+    const DateInSec = new Date();
+    const unixtime = DateInSec.valueOf()
+    const DateInFormat = new Date(unixtime)
+    firestore.collection('poker').doc(room).update({
+      startBreakdown : DateInFormat
+    })
+
+    return "Start Breakdown"
+  }
+
+  async startVoting(room:string) {
+    console.log("Start Voting")
+    const DateInSec = new Date();
+    const unixtime = DateInSec.valueOf()
+    const DateInFormat = new Date(unixtime)
+    firestore.collection('poker').doc(room).update({
+      startVoting : DateInFormat
+    })
+
+    return "Start Voting"
+  }
+
+  async stopBreakdown(room:string) {
+    console.log("Stop Breakdown")
+    const startBD = (await firestore.collection("poker").doc(room).get()).data().startBreakdown.seconds
+    const stopBD = new Date().valueOf()/1000
+    const seconds = stopBD-startBD
+    const result = new Date(seconds * 1000).toISOString().slice(11, 19);
+    firestore.collection("poker").doc(room).update({
+      breakdownTime : result
+    })
+    return "Stop Breakdown"
+  }
+
+  async stopVoting(room:string) {
+    console.log("Stop Voting")
+    const startBD = (await firestore.collection("poker").doc(room).get()).data().startVoting.seconds
+    const stopBD = new Date().valueOf()/1000
+    const seconds = stopBD-startBD
+    const result = new Date(seconds * 1000).toISOString().slice(11, 19);
+    firestore.collection("poker").doc(room).update({
+      votingTime : result
+    })
+    return "Stop Voting"
+  }
 }
 
