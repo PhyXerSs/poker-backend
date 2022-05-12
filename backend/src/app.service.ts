@@ -12,7 +12,7 @@ export class AppService {
   @Cron('0 0 * * * *')
   handleCron() {
     console.log("Run Check Active Room")
-    this.checkActiveRoom();
+    this.checkActiveRoom(86400);
   }
 
   async deleteRoom(room:string) {
@@ -150,12 +150,12 @@ export class AppService {
     database.ref(`countdown/${room}`).remove()
   }
 
-  async checkActiveRoom() {
+  async checkActiveRoom(seconds:Number) {
     firestore.collection('poker').get()
     .then(snap => {
       snap.forEach(room => {
         const diffTimeInSec = (new Date().valueOf()/1000) - (room.data().ActiveDate.seconds)
-        if(diffTimeInSec >= 86400) {
+        if(diffTimeInSec >= seconds) {
           this.nestedDelete(room.id)
         }
       })
@@ -191,9 +191,8 @@ export class AppService {
     const startBD = (await firestore.collection("poker").doc(room).get()).data().startBreakdown.seconds
     const stopBD = new Date().valueOf()/1000
     const seconds = stopBD-startBD
-    const result = new Date(seconds * 1000).toISOString().slice(11, 19);
     firestore.collection("poker").doc(room).update({
-      breakdownTime : result
+      breakdownTime : seconds
     })
     return "Stop Breakdown"
   }
@@ -205,7 +204,7 @@ export class AppService {
     const seconds = stopBD-startBD
     const result = new Date(seconds * 1000).toISOString().slice(11, 19);
     firestore.collection("poker").doc(room).update({
-      votingTime : result
+      votingTime : seconds
     })
     return "Stop Voting"
   }
