@@ -84,30 +84,11 @@ export class MemberService {
 
 //run
 
-async function nestedDelete(room: string) {
-  firestore.collection('poker').doc(room).collection('issues').get()
-    .then(snap => {
-      snap.forEach(docs => {
-        firestore.collection('poker').doc(room).collection('issues').doc(docs.id).delete()
-      })
-    })
-
-  firestore.collection('poker').doc(room).collection('members').get()
-    .then(snap => {
-      snap.forEach(member => {
-        firestore.collection('poker').doc(room).collection('members').doc(member.id).delete()
-        firestore.collection("user").doc(member.id).delete()
-        database.ref(`status/${member.id}`).remove()
-      })
-    })
-
-  firestore.collection('poker').doc(room).delete()
-}
-
 async function removeMember(roomid: string, memberid: string) {
   await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).get()
     .then(docs => {
-      if (docs.data().isHost) {
+      console.log(docs.exists)
+      if (docs.exists && docs.data().isHost) {
         firestore.collection("poker").doc(roomid).collection("members").where("id", "!=", docs.id).limit(1).get()
           .then(snap => {
             snap.forEach(mem => {
@@ -120,8 +101,11 @@ async function removeMember(roomid: string, memberid: string) {
       }
 
     })
-  await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).delete()
+  console.log("Pass This section")
   await firestore.collection("user").doc(memberid).delete()
+  console.log("Pass This second section")
+  await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).delete()
+  console.log("End section\n")
 }
 
 database.ref('status').on('value', (snap) => {
@@ -130,7 +114,8 @@ database.ref('status').on('value', (snap) => {
     const status = data.val()
     if (status === 'offline') {
       database.ref(`status/${memberid}`).remove()
-      firestore.collection('user').doc(memberid).get().then(async docs => {
+      firestore.collection('user').doc(memberid).get()
+      .then(docs => {
         if (docs.exists) {
           console.log(memberid)
           const roomid = docs.data().room

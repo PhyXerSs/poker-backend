@@ -5,7 +5,6 @@ import { VoteData } from './dto/voteData.dto';
 import { nanoid } from 'nanoid'
 import database from './utils/database';
 import { Cron } from '@nestjs/schedule';
-
 @Injectable()
 export class AppService {
   
@@ -208,5 +207,6 @@ export class AppService {
     })
     return "Stop Voting"
   }
+
 }
 
