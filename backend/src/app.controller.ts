@@ -11,7 +11,7 @@ export class AppController {
   constructor(private readonly appService: AppService) { }
 
   @Post('base64')
-  async test2(@Body() data:{url:string}): Promise<string> {
+  async base64(@Body() data:{url:string}): Promise<string> {
     const base64 = await imageToBase64(data.url) // Image URL
     return 'data:image/jpeg;base64,'+ base64
   }
