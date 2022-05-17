@@ -8,15 +8,28 @@ import { Cron } from '@nestjs/schedule';
 @Injectable()
 export class AppService {
   
-  @Cron('0 0 * * * *')
+  @Cron('0 * * * * *')
   handleCron() {
     console.log("Run Check Active Room")
-    this.checkActiveRoom(86400);
+    this.checkActiveRoom(3600);
+  }
+  
+  async checkActiveRoom(seconds:Number) {
+    firestore.collection('poker').get()
+    .then(snap => {
+      snap.forEach(room => {
+        const diffTimeInSec = (new Date().valueOf()/1000) - (room.data().ActiveDate.seconds)
+        if(diffTimeInSec >= seconds) {
+          this.nestedDelete(room.id)
+        }
+      })
+    })
   }
 
   async deleteRoom(room:string) {
     firestore.collection('poker').doc(room).delete()
   }
+
   async createRoom(name: string): Promise<string[]> {
     var roomid = nanoid(6)
     var creatorid : any
@@ -129,38 +142,8 @@ export class AppService {
       })
   }
 
-  async nestedDelete(room:string) {
-    firestore.collection('poker').doc(room).collection('issues').get()
-    .then(snap => {
-      snap.forEach(docs => {
-        firestore.collection('poker').doc(room).collection('issues').doc(docs.id).delete()
-      })
-    })
-
-    firestore.collection('poker').doc(room).collection('members').get()
-    .then(snap => {
-      snap.forEach(docs => {
-        firestore.collection('poker').doc(room).collection('members').doc(docs.id).delete()
-        firestore.collection("user").doc(docs.id).delete()
-      })
-    })
-    
-    firestore.collection('poker').doc(room).delete()
-    database.ref(`countdown/${room}`).remove()
-  }
-
-  async checkActiveRoom(seconds:Number) {
-    firestore.collection('poker').get()
-    .then(snap => {
-      snap.forEach(room => {
-        const diffTimeInSec = (new Date().valueOf()/1000) - (room.data().ActiveDate.seconds)
-        if(diffTimeInSec >= seconds) {
-          this.nestedDelete(room.id)
-        }
-      })
-    })
-  }
-
+  
+  
   async startBreakdown(room:string) {
     console.log("Start Breakdown")
     const DateInSec = new Date();
@@ -181,10 +164,10 @@ export class AppService {
     firestore.collection('poker').doc(room).update({
       startVoting : DateInFormat
     })
-
+    
     return "Start Voting"
   }
-
+  
   async stopBreakdown(room:string) {
     console.log("Stop Breakdown")
     const startBD = (await firestore.collection("poker").doc(room).get()).data().startBreakdown.seconds
@@ -195,7 +178,7 @@ export class AppService {
     })
     return "Stop Breakdown"
   }
-
+  
   async stopVoting(room:string) {
     console.log("Stop Voting")
     const startBD = (await firestore.collection("poker").doc(room).get()).data().startVoting.seconds
@@ -207,6 +190,26 @@ export class AppService {
     })
     return "Stop Voting"
   }
-
+  
+  async nestedDelete(room:string) {
+    firestore.collection('poker').doc(room).collection('issues').get()
+    .then(snap => {
+      snap.forEach(docs => {
+        firestore.collection('poker').doc(room).collection('issues').doc(docs.id).delete()
+      })
+    })
+  
+    firestore.collection('poker').doc(room).collection('members').get()
+    .then(snap => {
+      snap.forEach(docs => {
+        firestore.collection('poker').doc(room).collection('members').doc(docs.id).delete()
+        firestore.collection("user").doc(docs.id).delete()
+      })
+    })
+    
+    firestore.collection('poker').doc(room).delete()
+    database.ref(`countdown/${room}`).remove()
+    database.ref(`issue_counter/${room}`).remove()
+  }
 }
 
