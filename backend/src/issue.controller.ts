@@ -2,7 +2,7 @@ import { Controller, Delete, Get, Param, Body , Post, Put } from '@nestjs/common
 import { DataRearrange } from './dto/dataRerrange.dto';
 import { IssueService } from './issue.service';
 
-@Controller()
+@Controller('poker')
 export class IssueController {
     constructor(private readonly issueService: IssueService) {}
 

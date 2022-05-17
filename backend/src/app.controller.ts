@@ -6,7 +6,7 @@ import { getegid } from 'process';
 const imageToBase64 = require('image-to-base64');
 
 
-@Controller()
+@Controller('poker')
 export class AppController {
   constructor(private readonly appService: AppService) { }
 
@@ -15,23 +15,6 @@ export class AppController {
     const base64 = await imageToBase64(data.url) // Image URL
     return 'data:image/jpeg;base64,'+ base64
   }
-  /*
-var remoteimageurl = "https://example.com/images/photo.jpg"
-var filename = "images/photo.jpg"
-
-fetch(remoteimageurl).then(res => {
-  return res.blob();
-}).then(blob => {
-    //uploading blob to firebase storage
-  firebase.storage().ref().child(filename).put(blob).then(function(snapshot) {
-    return snapshot.ref.getDownloadURL()
- }).then(url => {
-   console.log("Firebase storage image uploaded : ", url); 
-  }) 
-}).catch(error => {
-  console.error(error);
-});
-  */
 
   @Post('createroom/:name')
   async createRoom(@Param("name") name: string): Promise<string[]> {

@@ -14,7 +14,7 @@ export class MemberService {
       const data = await firestore.collection("poker").doc(room).get()
       if (data.exists) {
         const user = await firestore.collection("poker").doc(room).collection("members").add(newMember);
-        database.ref('status/' + user.id).set('online')
+        database.ref('/poker/status/' + user.id).set('online')
         await firestore.collection("poker").doc(room).collection("members").doc(user.id).update({
           "id": user.id
         })
@@ -44,7 +44,7 @@ export class MemberService {
       }
     })
     await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).delete()
-    await firestore.collection("user").doc(memberid).delete()
+    await firestore.collection("poker_user").doc(memberid).delete()
     return "Remove memberid " + memberid + " from room " + roomid
   }
 
@@ -82,7 +82,7 @@ export class MemberService {
   }
 }
 
-//run
+//--------------------------------------------------------------------------------------------------------
 
 async function removeMember(roomid: string, memberid: string) {
   await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).get()
@@ -101,20 +101,20 @@ async function removeMember(roomid: string, memberid: string) {
       }
 
     })
-  console.log("Pass This section")
-  await firestore.collection("user").doc(memberid).delete()
-  console.log("Pass This second section")
+  //console.log("Pass This section")
+  await firestore.collection("poker_user").doc(memberid).delete()
+  //console.log("Pass This second section")
   await firestore.collection("poker").doc(roomid).collection("members").doc(memberid).delete()
-  console.log("End section\n")
+  //console.log("End section\n")
 }
 
-database.ref('status').on('value', (snap) => {
+database.ref('/poker/status').on('value', (snap) => {
   snap.forEach(data => {
     const memberid = data.key
     const status = data.val()
     if (status === 'offline') {
-      database.ref(`status/${memberid}`).remove()
-      firestore.collection('user').doc(memberid).get()
+      database.ref(`/poker/status/${memberid}`).remove()
+      firestore.collection('poker_user').doc(memberid).get()
       .then(docs => {
         if (docs.exists) {
           console.log(memberid)

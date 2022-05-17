@@ -8,7 +8,7 @@ import { Cron } from '@nestjs/schedule';
 @Injectable()
 export class AppService {
   
-  @Cron('0 * * * * *')
+  @Cron('0 0 * * * *')
   handleCron() {
     console.log("Run Check Active Room")
     this.checkActiveRoom(3600);
@@ -57,7 +57,7 @@ export class AppService {
     })
       .then(async docs => {
         creatorid = await firestore.collection("poker").doc(roomid).collection("members").add(creator)
-        database.ref('status/' + creatorid.id).set('online')
+        database.ref('/poker/status/' + creatorid.id).set('online')
         retdata.push(creatorid.id)
         await firestore.collection("poker").doc(roomid).collection("members").get()
         .then(docs => {
@@ -208,8 +208,9 @@ export class AppService {
     })
     
     firestore.collection('poker').doc(room).delete()
-    database.ref(`countdown/${room}`).remove()
-    database.ref(`issue_counter/${room}`).remove()
+    database.ref(`/poker/countdown/${room}`).remove()
+    database.ref(`/poker/issue_counter/${room}`).remove()
+    database.ref(`/poker/alert_user_event/${room}`).remove()
   }
 }
 

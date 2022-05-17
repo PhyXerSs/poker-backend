@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, Param, Body , Post, Put } from '@nestjs/common';
 import { MemberService } from './member.service';
 
-@Controller()
+@Controller('poker')
 export class MemberController {
     constructor(private readonly memberService: MemberService) {}
 
