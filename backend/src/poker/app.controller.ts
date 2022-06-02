@@ -3,8 +3,6 @@ import { AppService } from './app.service';
 import { DataRearrange } from './dto/dataRerrange.dto';
 import { VoteData } from './dto/voteData.dto';
 import { getegid } from 'process';
-import { RouterModule } from '@nestjs/core';
-import { MessageChat } from './dto/messageChat.dto';
 const imageToBase64 = require('image-to-base64');
 
 
@@ -12,11 +10,6 @@ const imageToBase64 = require('image-to-base64');
 export class AppController {
   constructor(private readonly appService: AppService) { }
 
-  @Post('testchat/:room')
-  async test(@Param('room') room:string ,@Body() data:MessageChat) {
-    return await this.appService.testchat(room,data);
-  }
-  
   @Post('base64')
   async base64(@Body() data:{url:string}): Promise<string> {
     const base64 = await imageToBase64(data.url) // Image URL

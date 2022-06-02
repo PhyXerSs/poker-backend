@@ -5,8 +5,6 @@ import { VoteData } from './dto/voteData.dto';
 import { nanoid } from 'nanoid'
 import database from './utils/database';
 import { Cron } from '@nestjs/schedule';
-import 'firebase/compat/firestore';
-import { MessageChat } from './dto/messageChat.dto';
 @Injectable()
 export class AppService {
   
@@ -14,18 +12,8 @@ export class AppService {
   handleCron() {
     console.log("Run Check Active Room")
     this.checkActiveRoom(3600);
-    }
-  
-  async testchat(room:string,data:MessageChat) {
-    const timeinsec = String(new Date().valueOf())
-    await firestore.collection('poker').doc(room).collection('chat').doc(timeinsec).set({
-      'message' : data.message,
-      'memberId' : data.id,
-      'name' : data.name,
-      'profilePicture' : data.propic,
-      'timestamp' : Number(timeinsec)
-    })
   }
+  
   async checkActiveRoom(seconds:Number) {
     firestore.collection('poker').get()
     .then(snap => {
