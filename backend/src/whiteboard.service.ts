@@ -3,10 +3,12 @@ import 'firebase/compat/firestore';
 import { nanoid } from 'nanoid'
 import firestore from './utils/firebase';
 import database from './utils/database';
+import { spawn } from 'child_process';
 @Injectable()
 export class WhiteboardService {
 
   async createCatagories(data: { name: string }) {
+    let id;
     try {
       await firestore.collection('whiteboard').where('catagories', '==', data.name).limit(1).get()
         .then(snap => {
@@ -14,12 +16,16 @@ export class WhiteboardService {
             firestore.collection('whiteboard').add({
               'catagories': data.name
             })
+              .then(docs => {
+                id = docs.id
+              })
           }
         })
     }
     catch (err) {
       console.log(err);
     }
+    return id;
   }
 
   async editCatagories(data: { oldname: string, newname: string }) {
@@ -84,7 +90,8 @@ export class WhiteboardService {
     }
   }
   async createRoom(data: { member: string, catagorie: string, roomname: string }) {
-    var roomid = nanoid(6)
+    var t = await String(new Date().valueOf())
+    var roomid = t + nanoid(6)
     try {
       await firestore.collection('whiteboard').where('catagories', '==', data.catagorie).limit(1).get()
         .then(snap => {
@@ -96,38 +103,60 @@ export class WhiteboardService {
               'roomname': data.roomname,
               'catagories': data.catagorie
             })
-            this.addMember( {room:roomid, member: data.member })
           })
         }
         )
+      await database.ref(`retrospective/${roomid}/roomDetail`).set({
+        'roomName': data.roomname,
+        'roomImage': "",
+        'createBy': data.member,
+        'catagories': data.catagorie
+      })
     } catch (err) {
       console.log(err);
     }
+    return roomid
   }
 
-  async addMember(data: { room:string , member: string }) {
-    try {
-      await firestore.collection('whiteboard_room').doc(data.room).get()
-        .then(async docs => {
-          if (docs.exists) {
-            await firestore.collection('whiteboard_room').doc(data.room).collection('members').add({
-              'name': data.member,
+  async deleteRoom(data: { catagorie: string, room: string }) {
+    await firestore.collection('whiteboard_room').doc(data.room).get()
+      .then(docs => {
+        if (docs.exists) {
+          firestore.collection('whiteboard_room').doc(data.room).delete()
+          firestore.collection('whiteboard').where('catagories', '==', data.catagorie).get()
+            .then(snap => {
+              snap.forEach(docs => {
+                firestore.collection('whiteboard').doc(docs.id).collection('room').doc(data.room).delete()
+              })
             })
-          }
-        })
-    } catch (err) {
-      console.log(err);
-    }
+          database.ref(`retrospective//${data.room}`).remove()
+        }
+      })
   }
 
-  async deleteMember(data: {room:string, member: string }) {
-    try {
-      await firestore.collection('whiteboard_room').doc(data.room).collection('members').doc(data.member).delete()
-    } catch (err) {
-      console.log(err);
+  // async addMember(data: { room: string, member: string }) {
+  //   try {
+  //     await firestore.collection('whiteboard_room').doc(data.room).get()
+  //       .then(async docs => {
+  //         if (docs.exists) {
+  //           await firestore.collection('whiteboard_room').doc(data.room).collection('members').doc(data.member).set({
+  //             'name': data.member,
+  //           })
+  //         }
+  //       })
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // }
 
-    }
-  }
+  // async deleteMember(data: { room: string, member: string }) {
+  //   try {
+  //     await firestore.collection('whiteboard_room').doc(data.room).collection('members').doc(data.member).delete()
+  //   } catch (err) {
+  //     console.log(err);
+
+  //   }
+  // }
   //   async createPostit(room: string, data: { message: string, type: string, shape: string, color: string }) {
   //   let id;
   //   try {
@@ -185,3 +214,24 @@ export class WhiteboardService {
 
 }
 
+database.ref('userRetrospective').on('value', (snap) => {
+  snap.forEach(data => {
+    console.log(data.key, data.val());
+    if (data.val().statusOnline == false) {
+      database.ref(`retrospective/${data.val().room}/shape`).once('value', (snaps) => {
+        snaps.forEach(datas => {
+          console.log(datas.key, datas.val().selectedByUserId, datas.val().selectedByUsername)
+          if (datas.val().selectedByUserId == data.key) {
+            database.ref(`retrospective/${data.val().room}/shape/${datas.key}`).update({
+              'selectedByUserId': '-',
+              'selectedByUsername': '-',
+            })
+          }
+        })
+      })
+      database.ref(`userRetrospective/${data.key}`).update({
+        'room': '-'
+      })
+    }
+  })
+})

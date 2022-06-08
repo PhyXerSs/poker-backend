@@ -1,5 +1,4 @@
 import { Controller, Delete, Get, Param, Body, Post, Put } from '@nestjs/common';
-import { getegid } from 'process';
 import { WhiteboardService } from './whiteboard.service';
 
 const imageToBase64 = require('image-to-base64');
@@ -11,6 +10,13 @@ export class WhiteboardController {
   @Post('createcatagories')
   async createCatagories(@Body() data:{name:string}) {
     const creating = this.whiteboardService.createCatagories(data)
+    return creating
+  }
+
+  @Post('createroom')
+  async createRoom(@Body() data:{member:string , catagorie:string , roomname:string}) {
+    //console.log('creating');
+    const creating = this.whiteboardService.createRoom(data)
     return creating
   }
 
@@ -26,22 +32,24 @@ export class WhiteboardController {
     return changing
   }
 
-  @Post('createroom')
-  async createRoom(@Body() data:{member:string , catagorie:string , roomname:string}) {
-    const creating = this.whiteboardService.createRoom(data)
-    return creating
-  }
-  @Post('addmember')
-  async addMember(@Body() data:{room:string , member:string}) {
-    const adding = this.whiteboardService.addMember(data)
-    return adding
-  }
-
-  @Delete('deletemember')
-  async deleteMember(@Body() data:{room:string , member:string}) {
-    const deleting = this.whiteboardService.deleteMember(data)
+  @Post('deleteroom') 
+  async deleteRoom(@Body() data:{catagorie:string , room:string}) {
+    console.log('delete',data);
+    
+    const deleting = this.whiteboardService.deleteRoom(data)
     return deleting
   }
+  // @Post('addmember')
+  // async addMember(@Body() data:{room:string , member:string}) {
+  //   const adding = this.whiteboardService.addMember(data)
+  //   return adding
+  // }
+
+  // @Delete('deletemember')
+  // async deleteMember(@Body() data:{room:string , member:string}) {
+  //   const deleting = this.whiteboardService.deleteMember(data)
+  //   return deleting
+  // }
 
   // @Post('postit/:room') 
   // async createPostit (@Param('room') room:string , @Body() data:{message:string , type:string , shape:string , color:string}) {
