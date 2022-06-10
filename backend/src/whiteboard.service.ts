@@ -14,7 +14,8 @@ export class WhiteboardService {
         .then(snap => {
           if (snap.docs.length == 0) {
             firestore.collection('whiteboard').add({
-              'catagories': data.name
+              'catagories': data.name,
+              'create' : new Date().valueOf()
             })
               .then(docs => {
                 id = docs.id
