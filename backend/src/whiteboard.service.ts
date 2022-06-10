@@ -40,7 +40,7 @@ export class WhiteboardService {
               .then(snap => {
                 snap.forEach(docs => {
                   firestore.collection('whiteboard').doc(docs.id).update({
-                    'categories': data.newname
+                    'catagories': data.newname
                   })
                 })
               })
