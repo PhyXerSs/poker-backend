@@ -39,6 +39,12 @@ export class WhiteboardController {
     const deleting = this.whiteboardService.deleteRoom(data)
     return deleting
   }
+
+  @Post('deleteCatagories')
+  async deleteCatagories(@Body() data:{catagories:string}) {
+    const deleting = this.whiteboardService.deleteCatagories(data)
+    return deleting
+  }
   // @Post('addmember')
   // async addMember(@Body() data:{room:string , member:string}) {
   //   const adding = this.whiteboardService.addMember(data)

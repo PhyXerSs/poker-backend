@@ -39,7 +39,7 @@ export class WhiteboardService {
               .then(snap => {
                 snap.forEach(docs => {
                   firestore.collection('whiteboard').doc(docs.id).update({
-                    'catagories': data.newname
+                    'categories': data.newname
                   })
                 })
               })
@@ -48,6 +48,9 @@ export class WhiteboardService {
                 snap.forEach(docs => {
                   firestore.collection('whiteboard_room').doc(docs.id).update({
                     'catagories': data.newname
+                  })
+                  database.ref(`retrospective/${docs.id}/roomDetail`).update({
+                    'catagories' : data.newname
                   })
                 })
               })
@@ -118,6 +121,15 @@ export class WhiteboardService {
     return roomid
   }
 
+  async deleteCatagories(data:{ catagories:string}) {
+    await firestore.collection('whiteboard_room').where('catagories' , '==' , data.catagories).get()
+    .then(snap => {
+      snap.forEach(docs => {
+        this.deleteRoom({catagorie:data.catagories,room:docs.id})
+      })
+    })
+  }
+  
   async deleteRoom(data: { catagorie: string, room: string }) {
     await firestore.collection('whiteboard_room').doc(data.room).get()
       .then(docs => {
@@ -129,7 +141,7 @@ export class WhiteboardService {
                 firestore.collection('whiteboard').doc(docs.id).collection('room').doc(data.room).delete()
               })
             })
-          database.ref(`retrospective//${data.room}`).remove()
+          database.ref(`retrospective/${data.room}`).remove()
         }
       })
   }
