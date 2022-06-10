@@ -125,7 +125,14 @@ export class WhiteboardService {
     await firestore.collection('whiteboard_room').where('catagories' , '==' , data.catagories).get()
     .then(snap => {
       snap.forEach(docs => {
+        console.log(docs.id);
         this.deleteRoom({catagorie:data.catagories,room:docs.id})
+      })
+    })
+    await firestore.collection('whiteboard').where('catagories', '==', data.catagories).get()
+    .then(snap => {
+      snap.forEach(docs => {
+        firestore.collection('whiteboard').doc(docs.id).delete()
       })
     })
   }

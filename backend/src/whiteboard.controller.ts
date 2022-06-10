@@ -42,6 +42,8 @@ export class WhiteboardController {
 
   @Post('deleteCatagories')
   async deleteCatagories(@Body() data:{catagories:string}) {
+    console.log("->",data);
+    
     const deleting = this.whiteboardService.deleteCatagories(data)
     return deleting
   }
