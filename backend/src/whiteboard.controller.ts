@@ -14,7 +14,7 @@ export class WhiteboardController {
   }
 
   @Post('createroom')
-  async createRoom(@Body() data:{member:string , catagorie:string , roomname:string}) {
+  async createRoom(@Body() data:{member:string , memberName:string ,catagorie:string , roomname:string}) {
     //console.log('creating');
     const creating = this.whiteboardService.createRoom(data)
     return creating

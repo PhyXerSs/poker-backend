@@ -93,7 +93,7 @@ export class WhiteboardService {
 
     }
   }
-  async createRoom(data: { member: string, catagorie: string, roomname: string }) {
+  async createRoom(data: { member: string, memberName:string , catagorie: string, roomname: string }) {
     var t = await String(new Date().valueOf())
     var roomid = t + nanoid(6)
     try {
@@ -114,7 +114,9 @@ export class WhiteboardService {
         'roomName': data.roomname,
         'roomImage': "",
         'createBy': data.member,
-        'catagories': data.catagorie
+        'createByName': data.memberName,
+        'catagories': data.catagorie,
+        'lastModified':new Date().valueOf(),
       })
     } catch (err) {
       console.log(err);
