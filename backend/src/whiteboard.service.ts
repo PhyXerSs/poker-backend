@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid'
 import firestore from './utils/firebase';
 import database from './utils/database';
 import { spawn } from 'child_process';
+import { getHeapSnapshot } from 'v8';
 @Injectable()
 export class WhiteboardService {
 
@@ -96,40 +97,42 @@ export class WhiteboardService {
   async createRoom(data: { member: string, memberName: string, catagorie: string, roomname: string }) {
     var t = await String(new Date().valueOf())
     var roomid = t + nanoid(6)
-    const res = await firestore.collection('whiteboard').doc(data.catagorie).get()
-      .then(async docs => {
-        if (docs.exists) {
-          try {
-            await firestore.collection('whiteboard').where('catagories', '==', data.catagorie).limit(1).get()
-              .then(snap => {
-                snap.forEach(async docs => {
-                  await firestore.collection('whiteboard').doc(docs.id).collection('room').doc(roomid).set({
-                    'name': data.roomname
+    await firestore.collection('whiteboard').where('catagories', '==', data.catagorie).limit(1).get()
+      .then(async snaps => {
+        snaps.forEach(docs => {
+          if (docs.exists) {
+            try {
+              firestore.collection('whiteboard').where('catagories', '==', data.catagorie).limit(1).get()
+                .then(snap => {
+                  snap.forEach(async docs => {
+                    await firestore.collection('whiteboard').doc(docs.id).collection('room').doc(roomid).set({
+                      'name': data.roomname
+                    })
+                    await firestore.collection('whiteboard_room').doc(roomid).set({
+                      'roomname': data.roomname,
+                      'catagories': data.catagorie
+                    })
                   })
-                  await firestore.collection('whiteboard_room').doc(roomid).set({
-                    'roomname': data.roomname,
-                    'catagories': data.catagorie
-                  })
-                })
-              }
-              )
-            await database.ref(`retrospective/${roomid}/roomDetail`).set({
-              'roomName': data.roomname,
-              'roomImage': "",
-              'createBy': data.member,
-              'createByName': data.memberName,
-              'catagories': data.catagorie,
-              'lastModified': new Date().valueOf(),
-            })
-          } catch (err) {
-            console.log(err);
+                }
+                )
+              database.ref(`retrospective/${roomid}/roomDetail`).set({
+                'roomName': data.roomname,
+                'roomImage': "",
+                'createBy': data.member,
+                'createByName': data.memberName,
+                'catagories': data.catagorie,
+                'lastModified': new Date().valueOf(),
+              })
+            } catch (err) {
+              console.log(err);
+            }
           }
-        }
-        else {
-          roomid = "not exist category"
-        }
+          else {
+            roomid = "not exist category"
+          }
+        })
+        return roomid
       })
-    return roomid
   }
 
   async deleteCatagories(data: { catagories: string }) {
