@@ -5,6 +5,7 @@ import firestore from './utils/firebase';
 import database from './utils/database';
 import { spawn } from 'child_process';
 import { getHeapSnapshot } from 'v8';
+import { captureRejections } from 'events';
 @Injectable()
 export class WhiteboardService {
 
@@ -96,47 +97,58 @@ export class WhiteboardService {
   }
   async createRoom(data: { member: string, memberName: string, catagorie: string, roomname: string }) {
     var t
-    var roomid = "not exist category"
+    var roomid
+    var dbcatagories
+    var check = false
+    t = await String(new Date().valueOf())
+    roomid = t + nanoid(6)
     console.log('->', roomid);
-
-    await firestore.collection('whiteboard').where('catagories', '==', data.catagorie).get()
-      .then(async snaps => {
-        t = await String(new Date().valueOf())
-        roomid = t + nanoid(6)
-        console.log(snaps.docs.length);
-
-        if (snaps.docs.length) {
-          try {
-            firestore.collection('whiteboard').where('catagories', '==', data.catagorie).limit(1).get()
-              .then(snap => {
-                snap.forEach(async docs => {
-                  await firestore.collection('whiteboard').doc(docs.id).collection('room').doc(roomid).set({
-                    'name': data.roomname
-                  })
-                  await firestore.collection('whiteboard_room').doc(roomid).set({
-                    'roomname': data.roomname,
-                    'catagories': data.catagorie
-                  })
-                })
-              }
-              )
-            database.ref(`retrospective/${roomid}/roomDetail`).set({
-              'roomName': data.roomname,
-              'roomImage': "",
-              'createBy': data.member,
-              'createByName': data.memberName,
-              'catagories': data.catagorie,
-              'lastModified': new Date().valueOf(),
-            })
-          } catch (err) {
-            console.log(err);
+    try {
+      await firestore.collection('whiteboard').where('catagories', '==', data.catagorie).get()
+        .then(snaps => {
+          // console.log(snaps.docs.length);
+          if (snaps.docs.length) {
+            dbcatagories = data.catagorie
           }
+          else {
+            dbcatagories = "DEFAULT"
+            check = true
+          }
+        })
+    } catch (err) {
+      console.log(err);
+    }
+    try {
+      firestore.collection('whiteboard').where('catagories', '==', dbcatagories).limit(1).get()
+        .then(snap => {
+          snap.forEach(async docs => {
+            await firestore.collection('whiteboard').doc(docs.id).collection('room').doc(roomid).set({
+              'name': data.roomname
+            })
+            await firestore.collection('whiteboard_room').doc(roomid).set({
+              'roomname': data.roomname,
+              'catagories': dbcatagories
+            })
+          })
         }
-        else {
-          roomid = "not exist category"
-        }
+        )
+      database.ref(`retrospective/${roomid}/roomDetail`).set({
+        'roomName': data.roomname,
+        'roomImage': "",
+        'createBy': data.member,
+        'createByName': data.memberName,
+        'catagories': dbcatagories,
+        'lastModified': new Date().valueOf(),
       })
-    return roomid
+    }
+    catch (err) {
+      console.log(err);
+    }
+    if (check) {
+      return "not exist category"
+    } else {
+      return roomid
+    }
   }
 
   async deleteCatagories(data: { catagories: string }) {
